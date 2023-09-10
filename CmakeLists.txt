@@ -1,0 +1,68 @@
+cmake_minimum_required(VERSION 3.14)
+
+project(app  LANGUAGES C CXX)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+
+INCLUDE_DIRECTORIES(C://msys64//mingw64//include//glib-2.0)
+INCLUDE_DIRECTORIES(C://msys64//mingw64//lib//glib-2.0//include)
+INCLUDE_DIRECTORIES(C://msys64//mingw64//include)
+INCLUDE_DIRECTORIES(C://msys64//mingw64//include//c++//13.1.0)
+INCLUDE_DIRECTORIES(C://msys64//mingw64//include//c++//13.1.0//x86_64-w64-mingw32)
+INCLUDE_DIRECTORIES(C://msys64//mingw64//include//json-glib-1.0)
+INCLUDE_DIRECTORIES(C://msys64//mingw64//include//gstreamer-1.0)
+INCLUDE_DIRECTORIES(C://msys64//mingw64//include//ncursesw)
+
+FIND_LIBRARY(COMM_LIB comm C://msys64//mingw64//lib NO_DEFAULT_PATH)
+
+
+add_executable(
+  main
+  main.c
+  screen-duplication-types.h
+  displayl-priv.h
+  display.h
+  display.c
+  capture-output-priv.h
+  capture-output.h
+  capture-output.c
+  d3dshot-priv.h
+  d3dshot.h
+  d3dshot.c
+  capture_outputs/gstreamer-capture-output-priv.h
+  capture_outputs/gstreamer-capture-output.h
+  capture_outputs/gstreamer-capture-output.c
+  dll/user32.h
+  dll/user32.c
+  dll/shcore.h
+  dll/shcore.c
+  dll/dxgi_l.h
+  dll/dxgi_l.c
+  dll/d3d_l.h
+  dll/d3d_l.c
+  utils/dxgi_utils.h
+  utils/dxgi_utils.c
+)
+
+target_link_options(main PRIVATE "-Wl,--whole-archive")
+
+target_link_libraries(
+  main
+  glib-2.0
+  gobject-2.0
+  shcore
+  dxgi
+  json-glib-1.0
+  d3d11
+  gstbase-1.0
+  gstapp-1.0
+  gstaudio-1.0
+  gstvideo-1.0
+  gstreamer-1.0
+  ncurses
+)
+
+
