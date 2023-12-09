@@ -12,7 +12,7 @@
 
 
 
-D3DDeviceReturnValue initialize_d3d_device(IDXGIAdapter1 *dxgi_adapter)
+D3DDeviceReturnValue initialize_d3d_device(IDXGIAdapter *dxgi_adapter)
 {
     D3DDeviceReturnValue returnValue;
 

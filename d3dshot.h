@@ -54,4 +54,5 @@ int *d3dshot_l_validate_region(D3dshotL *self, int *region);
 void *d3dshot_l_screenshot(D3dshotL *self, int *region);
 D3dshotL *d3dshot_l_new(gint capture_output, gint frame_buffer_size, gboolean gstreamer_is_available);
 gboolean d3dshot_l_capture(D3dshotL *self, gint target_fps, int *region, void* streamChannel);
+gboolean d3dshot_l_rebuild(D3dshotL *self);
 gboolean d3dshot_l_stop(D3dshotL *self);

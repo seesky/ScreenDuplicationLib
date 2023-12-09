@@ -29,6 +29,6 @@ typedef struct {
     ID3D11DeviceContext *d3d_device_context;
 } D3DDeviceReturnValue;
 
-D3DDeviceReturnValue initialize_d3d_device(IDXGIAdapter1 *dxgi_adapter);
+D3DDeviceReturnValue initialize_d3d_device(IDXGIAdapter *dxgi_adapter);
 D3D11_TEXTURE2D_DESC  describe_d3d11_texture_2d(ID3D11Texture2D *d3d11_texture_2d);
 ID3D11Texture2D *  prepare_d3d11_texture_2d_for_cpu(ID3D11Texture2D *d3d11_texture_2d, ID3D11Device *d3d_device);

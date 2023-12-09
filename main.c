@@ -108,16 +108,23 @@ int main(int argc, int argv[])
 
     // Initialize GStreamer
     gst_init(&argc, &argv);
+    gst_debug_set_active(TRUE);
+    gst_debug_set_default_threshold(GST_LEVEL_ERROR);
+
 
     GMainLoop *loop = g_main_loop_new(NULL, FALSE);
 
     D3dshotL *d = d3dshot_l_new(GSTREAMER_BUFFER, 60, TRUE);
 
 
-    g_usleep(5000000); 
+    //g_usleep(5000000); 
+    int ragion[4] = {0, 0, 100, 100}; 
     d3dshot_l_capture(d, 60, NULL, NULL);
 
+    //void *frame = d3dshot_l_get_latest_frame(d);
 
+    g_usleep(1000000000);
+    d3dshot_l_stop(d);
 
     g_main_loop_run(loop);
 

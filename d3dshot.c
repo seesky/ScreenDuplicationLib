@@ -93,7 +93,7 @@ void *d3dshot_l_screenshot(D3dshotL *self, int *region)
         {
             if(IS_GSTREAMER_OUTPUTL(self->priv->capture_output))
             {
-                frame = display_l_capture(self->priv->display, self->priv->capture_output, gstreamer_output_l_process, regionl);
+                frame = display_l_capture(self->priv->display, self->priv->capture_output, gstreamer_output_l_process, regionl, self);
             }
         }
 
@@ -105,7 +105,7 @@ void *d3dshot_l_screenshot(D3dshotL *self, int *region)
         {
             if(IS_GSTREAMER_OUTPUTL(self->priv->capture_output))
             {
-                frame = display_l_capture(self->priv->display, self->priv->capture_output, gstreamer_output_l_process, regionl);
+                frame = display_l_capture(self->priv->display, self->priv->capture_output, gstreamer_output_l_process, regionl, self);
             }
             if(frame != NULL)
             {
@@ -214,11 +214,12 @@ void d3dshot_l_capturepre(gpointer data)
     {
         GTime cycle_start =  g_get_real_time();
 
-
+        
         //void *frame = NULL;
         if(IS_GSTREAMER_OUTPUTL(self->priv->capture_output))
         {
-            FrameData *frame = display_l_capture(self->priv->display, self->priv->capture_output, gstreamer_output_l_process, d3dshot_l_validate_region(self, region));
+            
+            FrameData *frame = display_l_capture(self->priv->display, self->priv->capture_output, gstreamer_output_l_process, d3dshot_l_validate_region(self, region), self);
             GstreamerOutputL *output = (GstreamerOutputL *)self->priv->capture_output;
             //gst_app_src_push_buffer(output->priv->appsrc, frame->buffer);
         }
@@ -269,7 +270,7 @@ void d3dshot_l_capturepre(gpointer data)
         */
 
         GTime cycle_end = g_get_real_time();
-        GTimeSpan frame_time_left = cycle_end - cycle_start;
+        GTimeSpan frame_time_left = frame_time * 1000000 - (cycle_end - cycle_start);
         if(frame_time_left > 0){
             g_usleep(frame_time_left);
         }
@@ -363,10 +364,12 @@ gboolean d3dshot_l_screenshot_every(D3dshotL *self, gfloat interval, int *region
 
 gboolean d3dshot_l_stop(D3dshotL *self)
 {
+    /*
     if(self->priv->_is_capturing)
     {
         return FALSE;
     }
+    */
 
     self->priv->_is_capturing = FALSE;
 
@@ -435,4 +438,60 @@ D3dshotL *d3dshot_l_new(gint capture_output, gint frame_buffer_size, gboolean gs
     
 
     return d3dshot;
+}
+
+
+gboolean d3dshot_l_rebuild(D3dshotL *self)
+{
+    //gboolean stoped = d3dshot_l_stop(self);
+
+    //g_object_unref(self);
+
+    D3dshotL *d3dshot = self;
+    //d3dshot = D3DSHOTL(g_object_new(D3DSHOTL_TYPE, NULL)); 
+
+    //D3dshotLPrivate *priv = g_new(D3dshotLPrivate, 1);
+    //d3dshot->priv = priv;
+
+    g_object_unref(d3dshot->priv->display);
+    g_list_free(d3dshot->priv->displays);
+
+    
+    d3dshot_l_detect_desplays(d3dshot);
+    if(g_list_length(d3dshot->priv->displays) > 0)
+    {
+        d3dshot->priv->display = (DisplayL *)g_list_nth_data(d3dshot->priv->displays, 0);
+    }else{
+        d3dshot->priv->display = NULL;
+    }
+    
+    GList* iter;
+    for (iter = d3dshot->priv->displays; iter != NULL; iter = iter->next) {
+        DisplayL *d = (DisplayL *)iter->data;
+        if(d->priv->is_primary){
+            d3dshot->priv->display = d;
+        }
+    }
+
+    GstreamerOutputL *out = GSTREAMER_OUTPUTL(d3dshot->priv->capture_output);
+    gst_element_set_state(out->priv->pipeline, GST_STATE_NULL);
+    gst_object_unref(out->priv->pipeline);
+
+    d3dshot->priv->capture_output = capture_output_l_new(GSTREAMER_BUFFER, d3dshot->priv->display);
+
+    //d3dshot->priv->frame_buffer_size = 60;
+    //d3dshot->priv->frame_buffer = NULL;
+
+    //d3dshot->priv->previous_screenshot = NULL;
+
+    //d3dshot->priv->region = NULL;
+
+    //d3dshot->priv->_gstreamer_is_available = TRUE;
+
+    //d3dshot->priv->_capture_thread = NULL;
+    //d3dshot->priv->_is_capturing = FALSE;
+
+    
+
+    //self =  d3dshot;
 }

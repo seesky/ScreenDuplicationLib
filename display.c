@@ -100,7 +100,7 @@ GList *display_l_discover_displays()
     GList *dxgi_adapters = discover_dxgi_adapters(dxgi_factory);
     release_dxgi_factory(dxgi_factory); //释放IDXGIFactory
     
-    GList *displays;
+    GList *displays = NULL;
 
     GList *adapterIter = dxgi_adapters;
     while(adapterIter != NULL){
@@ -115,6 +115,7 @@ GList *display_l_discover_displays()
             IDXGIOutput1 *dxgi_output = (IDXGIOutput1 *)outputsIter->data;
             //description是json结构的数据
             gchar *dxgi_output_description = describe_dxgi_output(dxgi_output);
+            //
             GError *error = NULL;
             JsonParser *parser = json_parser_new();
             if (json_parser_load_from_data(parser, dxgi_output_description, -1, &error)) {
@@ -157,8 +158,9 @@ GList *display_l_discover_displays()
                 
             }else{
                 //TODO:json解析错误，需要处理
+                g_warning("error:%s", error);
             }
-            
+            g_usleep(1000000);
             outputsIter = outputsIter->next;
             
         }
@@ -211,13 +213,13 @@ DisplayL *display_l_new(gchar *name, gchar *adapter_name,
     return displayl;
 }
 
-void *display_l_capture(DisplayL *self, CaptureOutputL *captureOutput, GetFrameL process_func, int *region)
+void *display_l_capture(DisplayL *self, CaptureOutputL *captureOutput, GetFrameL process_func, int *region, D3dshotL *d3dshot)
 {
     int *regionl = display_l_get_clean_region(self, region);
     
     //TODO:需要接收并返回frame
     void *frame = get_dxgi_output_duplication_frame(captureOutput, self->priv->dxgi_output_deplication, 
-                                    self->priv->d3d_device, process_func, self->priv->resolutionX, self->priv->resolutionY, regionl, self->priv->rotation);
+                                    self->priv->d3d_device, process_func, self->priv->resolutionX, self->priv->resolutionY, regionl, self->priv->rotation, self, d3dshot);
     
     return frame; //return frame
 }

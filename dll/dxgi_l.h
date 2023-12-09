@@ -49,5 +49,5 @@ gchar* describe_dxgi_adapter(IDXGIAdapter1 *dxgi_adapter);
 GList * discover_dxgi_outputs(IDXGIAdapter1 *dxgi_adapter);
 gchar * describe_dxgi_output(IDXGIOutput1 *dxgi_output);
 IDXGIOutputDuplication * initialize_dxgi_output_duplication(IDXGIOutput1 *dxgi_output, ID3D11Device *d3d_device);
-void *get_dxgi_output_duplication_frame(CaptureOutputL *captureOutput, IDXGIOutputDuplication *dxgi_output_duplication, ID3D11Device *d3d_device, GetFrameL process_func, int width, int height, int *region, int rotation);
+void *get_dxgi_output_duplication_frame(CaptureOutputL *captureOutput, IDXGIOutputDuplication *dxgi_output_duplication, ID3D11Device *d3d_device, GetFrameL process_func, int width, int height, int *region, int rotation, DisplayL *display, D3dshotL *dedshot);
 

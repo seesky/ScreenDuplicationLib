@@ -25,7 +25,7 @@ CaptureOutputL *capture_output_l_new(int captureOutput, DisplayL *display)
 {
     if(captureOutput == GSTREAMER_BUFFER)
     {
-        CaptureOutputL *output = gstreamer_output_l_new(display->priv->resolutionX, display->priv->resolutionY);
+        CaptureOutputL *output = (CaptureOutputL *)gstreamer_output_l_new(display->priv->resolutionX, display->priv->resolutionY);
         return output; //TODO:需要返回正确的后端对象，
     }
     return NULL;

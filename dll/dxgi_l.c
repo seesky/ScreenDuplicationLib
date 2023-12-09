@@ -13,6 +13,11 @@
 #include <glib.h>
 #include <json-glib/json-glib.h>
 #include <windows.h>
+#include "../screen-duplication-types.h"
+#include "../displayl-priv.h"
+#include "../capture_outputs/gstreamer-capture-output-priv.h"
+#include <glib.h>
+#include "../d3dshot.h"
 
 
 const IID * const pa_IID_IDXGIFactory1_c = &pa_IID_IDXGIFactory1;
@@ -168,61 +173,88 @@ IDXGIOutputDuplication * initialize_dxgi_output_duplication(IDXGIOutput1 *dxgi_o
     return dxgi_output_duplication;
 }
 
-void *get_dxgi_output_duplication_frame(CaptureOutputL *captureOutput, IDXGIOutputDuplication *dxgi_output_duplication, ID3D11Device *d3d_device, GetFrameL process_func, int width, int height, int *region, int rotation)
+void *get_dxgi_output_duplication_frame(CaptureOutputL *captureOutput, IDXGIOutputDuplication *dxgi_output_duplication, ID3D11Device *d3d_device, GetFrameL process_func, int width, int height, int *region, int rotation, DisplayL *display, D3dshotL *d3dshot)
 {
     DXGI_OUTDUPL_FRAME_INFO *dxgi_output_duplication_frame_information = g_new(DXGI_OUTDUPL_FRAME_INFO, 1);
     IDXGIResource *dxgi_resource = g_new(IDXGIResource, 1);
 
-    dxgi_output_duplication->lpVtbl->AcquireNextFrame(dxgi_output_duplication, 0, dxgi_output_duplication_frame_information, &dxgi_resource);
-
-
     void *frame = NULL;
+    
+    HRESULT hr = dxgi_output_duplication->lpVtbl->AcquireNextFrame(dxgi_output_duplication, 0, dxgi_output_duplication_frame_information, &dxgi_resource);
+    if (SUCCEEDED(hr)) {
+        if(dxgi_output_duplication_frame_information->LastPresentTime.QuadPart > 0)
+        {
+            //
+            ID3D11Texture2D *id3d11_texture_2d;
+            
+            if(dxgi_resource == NULL){
+                g_free(dxgi_output_duplication_frame_information);
+                return NULL;
+            }else{
+                //g_warning("dxgi_resource not null....");
+                //g_warning("dxgi_resource value:%s", dxgi_resource);
+            }
+            
+            dxgi_resource->lpVtbl->QueryInterface(dxgi_resource, pa_IID_ID3D11Texture2D_c, &id3d11_texture_2d);
 
-    if(dxgi_output_duplication_frame_information->LastPresentTime.QuadPart > 0)
-    {
-        //
-        ID3D11Texture2D *id3d11_texture_2d;
-        dxgi_resource->lpVtbl->QueryInterface(dxgi_resource, pa_IID_ID3D11Texture2D_c, &id3d11_texture_2d);
 
-        //
-        ID3D11Texture2D *id3d11_texture_2d_cpu;
-        id3d11_texture_2d_cpu = prepare_d3d11_texture_2d_for_cpu(id3d11_texture_2d, d3d_device);
-        //
-        ID3D11DeviceContext *d3d_device_context;
-        d3d_device->lpVtbl->GetImmediateContext(d3d_device, &d3d_device_context);
-        //
-        d3d_device_context->lpVtbl->CopyResource(d3d_device_context, id3d11_texture_2d_cpu, id3d11_texture_2d);
-        //
-        IDXGISurface *id3d11_surface;
-        id3d11_texture_2d_cpu->lpVtbl->QueryInterface(id3d11_texture_2d_cpu, pa_IID_IDXGISurface_c, &id3d11_surface);
-        //
-        DXGI_MAPPED_RECT dxgi_mapped_rect;
-        id3d11_surface->lpVtbl->Map(id3d11_surface, &dxgi_mapped_rect, 1);
+            //
+            ID3D11Texture2D *id3d11_texture_2d_cpu;
+            id3d11_texture_2d_cpu = prepare_d3d11_texture_2d_for_cpu(id3d11_texture_2d, d3d_device);
+            //
+            ID3D11DeviceContext *d3d_device_context;
+            d3d_device->lpVtbl->GetImmediateContext(d3d_device, &d3d_device_context);
+            //
+            d3d_device_context->lpVtbl->CopyResource(d3d_device_context, id3d11_texture_2d_cpu, id3d11_texture_2d);
+            //
+            IDXGISurface *id3d11_surface;
+            id3d11_texture_2d_cpu->lpVtbl->QueryInterface(id3d11_texture_2d_cpu, pa_IID_IDXGISurface_c, &id3d11_surface);
+            //
+            DXGI_MAPPED_RECT dxgi_mapped_rect;
+            id3d11_surface->lpVtbl->Map(id3d11_surface, &dxgi_mapped_rect, 1);
 
-        BYTE *pointer = dxgi_mapped_rect.pBits; //像素数据指针
-        int pitch = dxgi_mapped_rect.Pitch;
+            BYTE *pointer = dxgi_mapped_rect.pBits; //像素数据指针
+            int pitch = dxgi_mapped_rect.Pitch;
 
-        int size;
-        if(rotation == 0 || rotation == 180){
-            size = pitch * height;
-        }else{
-            size = pitch * width;
+            int size;
+            if(rotation == 0 || rotation == 180){
+                size = pitch * height;
+            }else{
+                size = pitch * width;
+            }
+
+            //TODO:需要把返回值赋值给frame，目前需要确认frame类型
+            frame = process_func(captureOutput, pointer, pitch, size, width, height, region, rotation);
+
+            id3d11_surface->lpVtbl->Unmap(id3d11_surface);
+            id3d11_surface->lpVtbl->Release(id3d11_surface);
+            id3d11_texture_2d_cpu->lpVtbl->Release(id3d11_texture_2d_cpu);
+            d3d_device_context->lpVtbl->Release(d3d_device_context);
+
+            id3d11_texture_2d->lpVtbl->Release(id3d11_texture_2d);
+            dxgi_resource->lpVtbl->Release(dxgi_resource);
         }
 
-        //TODO:需要把返回值赋值给frame，目前需要确认frame类型
-        frame = process_func(captureOutput, pointer, pitch, size, width, height, region, rotation);
+        dxgi_output_duplication->lpVtbl->ReleaseFrame(dxgi_output_duplication);
+    } else if (hr == DXGI_ERROR_WAIT_TIMEOUT) {
+        // 没有新帧可用，可以继续等待下一帧
+        g_warning("no new frame,wait next...");
+    } else if (hr == DXGI_ERROR_ACCESS_LOST) {
 
-        id3d11_surface->lpVtbl->Unmap(id3d11_surface);
-        id3d11_surface->lpVtbl->Release(id3d11_surface);
-        id3d11_texture_2d_cpu->lpVtbl->Release(id3d11_texture_2d_cpu);
-        d3d_device_context->lpVtbl->Release(d3d_device_context);
 
-        id3d11_texture_2d->lpVtbl->Release(id3d11_texture_2d);
-        dxgi_resource->lpVtbl->Release(dxgi_resource);
+        d3dshot_l_rebuild(d3dshot);
+        
+
+
+        g_warning("shoud init dxgi_output_duplication");
+        
+    } else {
+
+
+        d3dshot_l_rebuild(d3dshot);
+        
+        g_warning("get_dxgi_output_duplication_frame other error。");
     }
-
-    dxgi_output_duplication->lpVtbl->ReleaseFrame(dxgi_output_duplication);
-
 
     //TODO: 需要返回正确的Frame
     return frame;

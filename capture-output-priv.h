@@ -16,7 +16,8 @@ enum CaptureOutputs {
     PYTORCH_FLOAT = 4,
     PYTORCH_GPU = 5,
     PYTORCH_FLOAT_GPU = 6,
-    GSTREAMER_BUFFER = 7
+    GSTREAMER_BUFFER = 7,
+    NVIDIA = 8
 };
 
 struct _CaptureOutputLPrivate

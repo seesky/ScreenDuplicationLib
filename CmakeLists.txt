@@ -1,11 +1,17 @@
 cmake_minimum_required(VERSION 3.14)
 
+# 设置编译模式为Debug
+set(CMAKE_BUILD_TYPE Debug)
+
+# 或者设置编译模式为Release
+#set(CMAKE_BUILD_TYPE Release)
+
 project(app  LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
 
 INCLUDE_DIRECTORIES(C://msys64//mingw64//include//glib-2.0)
 INCLUDE_DIRECTORIES(C://msys64//mingw64//lib//glib-2.0//include)

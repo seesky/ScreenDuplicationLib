@@ -49,4 +49,4 @@ GList *display_l_discover_displays();
 
 int *display_l_get_clean_region(DisplayL *self, int *region);
 
-void *display_l_capture(DisplayL *self, CaptureOutputL *captureOutput, GetFrameL process_func, int *region);
+void *display_l_capture(DisplayL *self, CaptureOutputL *captureOutput, GetFrameL process_func, int *region, D3dshotL *d3dshot);

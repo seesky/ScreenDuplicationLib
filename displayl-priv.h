@@ -28,7 +28,7 @@ struct _DisplayLPrivate
     gboolean is_primary;
     HMONITOR hmonitor;
     IDXGIOutput1 *dxgi_output;
-    IDXGIAdapter1 *dxgi_adapter;
+    IDXGIAdapter *dxgi_adapter;
     ID3D11Device *d3d_device;
     ID3D11DeviceContext *d3d_device_context;
     IDXGIOutputDuplication *dxgi_output_deplication;
